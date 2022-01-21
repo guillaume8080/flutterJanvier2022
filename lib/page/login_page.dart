@@ -6,6 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http ;
 import 'dart:developer' as developer;
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:ynovchat_flutter/Route.dart';
+
 class LoginPage extends StatelessWidget {
   // const LoginPage({Key? key}) : super(key: key);
   //late = instancié plus tard
@@ -117,7 +120,7 @@ class LoginPage extends StatelessWidget {
 
     });
 
-    res.then((value) {
+    res.then((value) async {
       if(value.statusCode == 200){
 
         //contenu map
@@ -125,6 +128,16 @@ class LoginPage extends StatelessWidget {
         // Noter ici le type dynamic , on peuiut récupérer du texte comme des nombres,...
         Map<String,dynamic> bodyJson =  jsonDecode(value.body);
         developer.log(bodyJson["jwt"]);
+        String token = bodyJson["jwt"];
+        await FlutterSecureStorage().write(key: "jwt" , value: token).then((value) => null,
+
+        onError: (_, error) => developer.log("erreur save token :" + error.toString() )
+        );
+
+
+        Navigator.of(context).pushReplacementNamed(ROUTE.HOME_PAGE);
+
+
 
       }
 

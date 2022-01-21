@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 // import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http ;
 import 'dart:developer' as developer;
@@ -139,7 +140,7 @@ class RegisterPageNWidget extends StatelessWidget {
 
         });
 
-    res.then((value) {
+    res.then((value) async {
       if(value.statusCode == 200){
 
         //contenu map
@@ -148,6 +149,12 @@ class RegisterPageNWidget extends StatelessWidget {
         developer.log(bodyJson["jwt"]);*/
 
         developer.log("200 recu");
+        Map<String,dynamic> bodyJson =  jsonDecode(value.body);
+        String token = bodyJson["jwt"];
+        await FlutterSecureStorage().write(key: "jwt" , value: token).then((value) => null,
+
+            onError: (_, error) => developer.log("erreur save token :" + error.toString() )
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content:Text( "inscription réussie"))
         );
