@@ -24,10 +24,13 @@ import 'package:image_picker/image_picker.dart';
 
 
 
+
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
+  // le widget etant dynamique ceci va instancier une class Etat
   _HomePageState createState() => _HomePageState();
 }
 
@@ -63,14 +66,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  //equivalent on create
+  //equivalent on create - UI
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("YnovChat"),
 
-      ),
+      )
+      ,
       body:
+
       // cet objet utilise une recyclervIEW
       // ListView.builder sinon
       Column(
@@ -133,6 +139,7 @@ class _HomePageState extends State<HomePage> {
               separatorBuilder: (BuildContext context,
                   int index) => const Divider(/*thickness: 1.5,*/),
 
+              // signifie qu on va boucler
               itemBuilder: (context, index) =>
 
 
@@ -164,8 +171,11 @@ class _HomePageState extends State<HomePage> {
                                 fontStyle: FontStyle.italic)),
 
                       ],
-                    ),
-                    subtitle: Text('${snapshot.data![index].content}')
+                    ),// Check l appareil photo pour changer ce champ si c est une image
+                    //subtitle: Text('${snapshot.data![index].content}')
+                  subtitle: checkIfIsEncodedImage('${snapshot.data![index].content}'),
+
+
 
 
                 ),
@@ -231,7 +241,10 @@ class _HomePageState extends State<HomePage> {
           if (value.statusCode == 200) {
             String jsonBody = value.body;
             List<Message> lsMsgs = List.empty(growable: true);
+            // le jspnDecode prend le body et le met ss la forme de la map<ci desosu
+            // 1 instance de cette map est bo entier
             for (Map<String, dynamic> msg in jsonDecode(jsonBody)) {
+              // fromjson retourne
               lsMsgs.add(Message.fromJson(msg));
             }
             _streamControllerListMessages.sink.add(lsMsgs);
@@ -268,7 +281,8 @@ class _HomePageState extends State<HomePage> {
     }
     Future<Response> resMsgs = post(
         Uri.parse("https://flutter-learning.mooo.com/messages"),
-        body: {"content": messageToSend},
+        body: {"content": messageToSend ,
+               "image" : true                        },
         headers: {
           "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjQyNjcxMzMyLCJleHAiOjE2NDUyNjMzMzJ9.46AmdmoaNWPaYdDoR-4YImCSBNROendkxWD5_oz39Nc"
         }
@@ -315,7 +329,7 @@ class _HomePageState extends State<HomePage> {
     if (serviceEnabled && permission == LocationPermission.always ||
         permission == LocationPermission.whileInUse) {
       // une fonction peut donc etre argument d une methode ...
-      Geolocator.getCurrentPosition().then((position) {
+      Geolocator.getCurrentPosition(/*: Duration(seconds: 10)*/).then((position) {
         tecMsg.text = '${position.latitude } , ${position.longitude}';
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("votre position a ét récup"))
@@ -329,13 +343,35 @@ class _HomePageState extends State<HomePage> {
 
   void pickImage() async {
     XFile? imagePicked = await
-    ip.pickImage(source: ImageSource.gallery);
+    //la gallery c est un service android existant
+    ip.pickImage(source: ImageSource.gallery, imageQuality: 10);
     if(imagePicked != null){
       log("image picked name :" + imagePicked.name);
       Uint8List imageBytes = await imagePicked.readAsBytes();
-      base64UrlEncode(imageBytes.toList());
+      log(base64UrlEncode(imageBytes.toList()));
+      tecMsg.text = tecMsg.text + base64UrlEncode(imageBytes.toList());
+
+
     }
 
+
+  }
+
+  Widget checkIfIsEncodedImage(String content){
+
+   try{
+     if(Image.memory(base64Decode(content)) is Image){
+
+       return Image.memory(base64Decode(content));
+
+     }
+   }
+   on Exception catch (_) {
+     log('message does not content image');
+   }
+
+
+   return Text('${content}');
 
   }
 }

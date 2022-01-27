@@ -18,7 +18,9 @@ class LoginPage extends StatelessWidget {
   late TextEditingController tecPwd;
 
   // Comprendre ce consgrcuteur !!!!
-  // ? --> optionnel
+  // ? --> peut être null
+  // key conservtion données user
+
   LoginPage({Key? key}) : super(key: key){
 
     tecId = new TextEditingController();
